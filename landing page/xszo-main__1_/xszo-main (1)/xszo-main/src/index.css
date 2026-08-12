@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.05); }
+}
+
+.animate-ticker-scroll {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 25s linear infinite;
+}
+
+.animate-ticker-scroll-reverse {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 28s linear infinite reverse;
+}
+
+.animate-scanline {
+  animation: scanline 12s linear infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+.cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(6, 182, 212, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glassmorphism custom card classes */
+.glass-panel {
+  background: rgba(5, 6, 15, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(6, 182, 212, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-panel-neon {
+  background: rgba(8, 11, 28, 0.82);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 255, 178, 0.18);
+  box-shadow: 0 0 25px rgba(0, 255, 178, 0.03);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 15px rgba(0, 255, 178, 0.5);
+}
+
+.text-glow-violet {
+  text-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
+}

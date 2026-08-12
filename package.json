@@ -1,0 +1,16 @@
+{
+  "name": "ai-honey",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run dashboard\"",
+    "dev:landing": "concurrently \"npm run backend\" \"npm run landing\"",
+    "backend": "cd backend && \"c:\\Users\\subas\\Desktop\\AI HONEY\\.venv\\Scripts\\python.exe\" -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "dashboard": "cross-env VITE_API_URL=http://127.0.0.1:8000 VITE_BACKEND_PROXY=http://127.0.0.1:8000 npm run dev --prefix dashboard",
+    "landing": "cd \"landing page/xszo-main__1_/xszo-main (1)/xszo-main\" && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "cross-env": "^7.0.3"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "CYBER-EYE HoneyBot AI",
+  "description": "An interactive cyber security SOC powered by XS20 AI Security to protect, detect, control, and assure LLM networks using simulated HoneyBot deception engines.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
