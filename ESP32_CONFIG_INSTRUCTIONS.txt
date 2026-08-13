@@ -1,0 +1,69 @@
+═══════════════════════════════════════════════════════════════════
+                    ESP32 HONEYPOT CONFIGURATION
+═══════════════════════════════════════════════════════════════════
+
+Current Status: ESP32 in Config Portal mode (HoneyBot_Setup WiFi active)
+
+═══════════════════════════════════════════════════════════════════
+STEP 1: CONNECT TO ESP32
+═══════════════════════════════════════════════════════════════════
+
+1. Open Windows WiFi Settings
+2. Connect to: HoneyBot_Setup
+3. Password: (leave empty / no password)
+
+═══════════════════════════════════════════════════════════════════
+STEP 2: OPEN CONFIG PAGE
+═══════════════════════════════════════════════════════════════════
+
+Open Browser and go to: http://192.168.4.1
+
+═══════════════════════════════════════════════════════════════════
+STEP 3: ENTER EXACT CONFIGURATION
+═══════════════════════════════════════════════════════════════════
+
+WiFi SSID:          subash07
+WiFi Password:      [Your WiFi password - EXACT, case-sensitive!]
+Backend URL:        http://192.168.1.100:8000   ← NO trailing slash!
+API Key:            honeypot-secret-soc-key-2026
+Device ID:          ESP32-HONEY-01
+
+IMPORTANT:
+- WiFi password MUST be EXACT (case-sensitive, no spaces)
+- Backend URL: http:// (NOT https://)
+- Port: 8000 (NOT 8080)
+
+═══════════════════════════════════════════════════════════════════
+STEP 4: SAVE & WAIT
+═══════════════════════════════════════════════════════════════════
+
+1. Click "Save Configuration"
+2. Wait for "Saved! Rebooting..." message
+3. Wait 30 seconds for ESP32 to restart and connect
+
+═══════════════════════════════════════════════════════════════════
+STEP 5: VERIFY CONNECTION
+═══════════════════════════════════════════════════════════════════
+
+After 30 seconds:
+- HoneyBot_Setup WiFi should disappear
+- Monitor script will show "ESP32 SUCCESSFULLY CONNECTED!"
+- Dashboard will show device: http://127.0.0.1:5173
+
+═══════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════
+
+If HoneyBot_Setup is still visible after 30 seconds:
+→ WiFi password might be wrong
+→ Press ESP32 RESET button (small button on board)
+→ Try configuration again with correct password
+
+If ESP32 RESET button doesn't work:
+→ Unplug USB cable
+→ Wait 5 seconds
+→ Plug back USB cable
+→ Wait for HoneyBot_Setup to appear
+→ Try configuration again
+
+═══════════════════════════════════════════════════════════════════

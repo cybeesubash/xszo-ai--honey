@@ -1,0 +1,267 @@
+#!/usr/bin/env pwsh
+# ESP32 Full Connection Diagnostics — CYBER-EYE HoneyBot
+# Usage: .\esp32_debug_full.ps1
+
+Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "   ESP32 HONEYPOT FULL DIAGNOSTICS - CYBER-EYE" -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host ""
+
+$BACKEND_URL = "http://192.168.1.100:8000"
+$API_KEY = "honeypot-secret-soc-key-2026"
+$ESP32_IP = "192.168.1.1"  # Config portal default IP
+$WIFI_SSID = "subash07"
+$EXPECTED_COM = "COM7"
+
+# ═══════════════════════════════════════════════════════
+# STEP 1: Backend Health Check
+# ═══════════════════════════════════════════════════════
+Write-Host "🔍 [1/8] Checking Backend Server..." -ForegroundColor Green
+Write-Host "    URL: $BACKEND_URL" -ForegroundColor Gray
+
+try {
+    $healthResponse = Invoke-RestMethod -Uri "$BACKEND_URL/health" -Method Get -TimeoutSec 3
+    Write-Host "    ✅ Backend ONLINE" -ForegroundColor Green
+    Write-Host "    Engine: $($healthResponse.engine)" -ForegroundColor Gray
+    Write-Host "    Status: $($healthResponse.status)" -ForegroundColor Gray
+} catch {
+    Write-Host "    ❌ Backend UNREACHABLE" -ForegroundColor Red
+    Write-Host "    Error: $_" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "⚠️  SOLUTION: Run backend first:" -ForegroundColor Yellow
+    Write-Host "    cd backend" -ForegroundColor White
+    Write-Host "    ..\.venv\Scripts\python.exe main.py" -ForegroundColor White
+    Write-Host ""
+    exit 1
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# STEP 2: Network Configuration
+# ═══════════════════════════════════════════════════════
+Write-Host "🌐 [2/8] Network Configuration..." -ForegroundColor Green
+
+$networkInfo = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -like "192.168.1.*" }
+if ($networkInfo) {
+    Write-Host "    ✅ Computer IP: $($networkInfo[0].IPAddress)" -ForegroundColor Green
+    Write-Host "    Interface: $($networkInfo[0].InterfaceAlias)" -ForegroundColor Gray
+} else {
+    Write-Host "    ⚠️  Computer not on 192.168.1.x network" -ForegroundColor Yellow
+    Write-Host "    ESP32 may not reach backend!" -ForegroundColor Yellow
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# STEP 3: WiFi Network Check
+# ═══════════════════════════════════════════════════════
+Write-Host "📡 [3/8] WiFi Network Check..." -ForegroundColor Green
+Write-Host "    Expected SSID: $WIFI_SSID" -ForegroundColor Gray
+
+$wifiNetworks = netsh wlan show networks mode=bssid | Select-String -Pattern "SSID"
+$found = $false
+foreach ($line in $wifiNetworks) {
+    if ($line -match $WIFI_SSID) {
+        $found = $true
+        break
+    }
+}
+
+if ($found) {
+    Write-Host "    ✅ WiFi '$WIFI_SSID' is visible" -ForegroundColor Green
+    
+    # Check if it's 2.4GHz
+    $networkDetails = netsh wlan show networks mode=bssid | Select-String -Pattern "$WIFI_SSID|Channel"
+    $channelInfo = $networkDetails | Select-String -Pattern "Channel"
+    if ($channelInfo) {
+        Write-Host "    $channelInfo" -ForegroundColor Gray
+        if ($channelInfo -match "Channel\s*:\s*([0-9]+)") {
+            $channel = [int]$Matches[1]
+            if ($channel -le 13) {
+                Write-Host "    ✅ 2.4GHz network (ESP32 compatible)" -ForegroundColor Green
+            } else {
+                Write-Host "    ⚠️  5GHz network detected!" -ForegroundColor Yellow
+                Write-Host "    ESP32 WROOM-32 only supports 2.4GHz WiFi!" -ForegroundColor Yellow
+            }
+        }
+    }
+} else {
+    Write-Host "    ⚠️  WiFi '$WIFI_SSID' NOT VISIBLE" -ForegroundColor Yellow
+    Write-Host "    ESP32 cannot connect to invisible WiFi" -ForegroundColor Yellow
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# STEP 4: COM Port Detection
+# ═══════════════════════════════════════════════════════
+Write-Host "🔌 [4/8] ESP32 COM Port Detection..." -ForegroundColor Green
+
+$comPorts = Get-WmiObject Win32_PnPEntity | Where-Object { $_.Name -match "COM\d+" }
+$esp32Found = $false
+
+foreach ($port in $comPorts) {
+    if ($port.Name -match "(CP210|CH340|Silicon Labs|USB-SERIAL)") {
+        Write-Host "    ✅ ESP32 detected: $($port.Name)" -ForegroundColor Green
+        $esp32Found = $true
+    }
+}
+
+if (-not $esp32Found) {
+    Write-Host "    ⚠️  No ESP32 USB device found" -ForegroundColor Yellow
+    Write-Host "    Connect ESP32 via USB cable" -ForegroundColor Gray
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# STEP 5: HoneyBot_Setup WiFi Check (Config Portal)
+# ═══════════════════════════════════════════════════════
+Write-Host "🔧 [5/8] ESP32 Config Portal Check..." -ForegroundColor Green
+Write-Host "    Looking for HoneyBot_Setup WiFi..." -ForegroundColor Gray
+
+$configPortalSSID = netsh wlan show networks | Select-String -Pattern "HoneyBot_Setup"
+if ($configPortalSSID) {
+    Write-Host "    ⚠️  CONFIG PORTAL ACTIVE - ESP32 in setup mode!" -ForegroundColor Yellow
+    Write-Host "    This means ESP32 is NOT connected to WiFi" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    Possible reasons:" -ForegroundColor Yellow
+    Write-Host "    1. WiFi credentials incorrect" -ForegroundColor White
+    Write-Host "    2. WiFi network not in range" -ForegroundColor White
+    Write-Host "    3. 5GHz network (ESP32 needs 2.4GHz)" -ForegroundColor White
+    Write-Host "    4. ESP32 not rebooted after configuration" -ForegroundColor White
+    Write-Host ""
+    Write-Host "    🔄 SOLUTION:" -ForegroundColor Cyan
+    Write-Host "    1. Connect to HoneyBot_Setup WiFi (no password)" -ForegroundColor White
+    Write-Host "    2. Open http://192.168.4.1 in browser" -ForegroundColor White
+    Write-Host "    3. Re-enter WiFi credentials for '$WIFI_SSID'" -ForegroundColor White
+    Write-Host "    4. Verify backend URL: $BACKEND_URL" -ForegroundColor White
+    Write-Host "    5. Save and physically RESET ESP32" -ForegroundColor White
+} else {
+    Write-Host "    ✅ Config portal NOT visible" -ForegroundColor Green
+    Write-Host "    ESP32 should be connected to WiFi" -ForegroundColor Green
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# STEP 6: Backend Device Registration Check
+# ═══════════════════════════════════════════════════════
+Write-Host "📋 [6/8] Checking Backend Device Registry..." -ForegroundColor Green
+
+try {
+    $devices = Invoke-RestMethod -Uri "$BACKEND_URL/devices" -Method Get
+    if ($devices.Count -eq 0) {
+        Write-Host "    ❌ NO DEVICES REGISTERED" -ForegroundColor Red
+        Write-Host "    ESP32 has not contacted backend!" -ForegroundColor Red
+    } else {
+        Write-Host "    ✅ $($devices.Count) device(s) registered:" -ForegroundColor Green
+        foreach ($dev in $devices) {
+            $statusIcon = if ($dev.online) { "[ONLINE]" } else { "[OFFLINE]" }
+            Write-Host "    $statusIcon $($dev.device_id)" -ForegroundColor White
+            Write-Host "       IP: $($dev.ip)" -ForegroundColor Gray
+            Write-Host "       Hostname: $($dev.hostname)" -ForegroundColor Gray
+            Write-Host "       Firmware: $($dev.firmware_version)" -ForegroundColor Gray
+            Write-Host "       Last Seen: $($dev.last_seen)" -ForegroundColor Gray
+        }
+    }
+} catch {
+    Write-Host "    ❌ Failed to query devices: $_" -ForegroundColor Red
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# STEP 7: Backend API Key Verification
+# ═══════════════════════════════════════════════════════
+Write-Host "🔑 [7/8] API Key Verification..." -ForegroundColor Green
+Write-Host "    Expected Key: $API_KEY" -ForegroundColor Gray
+
+try {
+    $headers = @{
+        "Authorization" = "Bearer $API_KEY"
+        "Content-Type" = "application/json"
+    }
+    
+    $testDevice = @{
+        device_id = "TEST-DIAGNOSTIC-01"
+        hostname = "diagnostic-test"
+        firmware_version = "TEST"
+        ip = "192.168.1.200"
+        mac = "00:00:00:00:00:00"
+        chip_type = "TEST"
+    } | ConvertTo-Json
+    
+    $response = Invoke-RestMethod -Uri "$BACKEND_URL/device/register" -Method Post -Headers $headers -Body $testDevice
+    Write-Host "    ✅ API Key VALID" -ForegroundColor Green
+    Write-Host "    Test device registered successfully" -ForegroundColor Gray
+} catch {
+    Write-Host "    ⚠️  API Key test inconclusive" -ForegroundColor Yellow
+    Write-Host "    Backend may be in dev mode (allows all keys)" -ForegroundColor Gray
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# STEP 8: Firewall Check
+# ═══════════════════════════════════════════════════════
+Write-Host "🔥 [8/8] Windows Firewall Check..." -ForegroundColor Green
+
+$firewallRule = Get-NetFirewallRule -DisplayName "*Python*" -ErrorAction SilentlyContinue | Where-Object { $_.Enabled -eq $true }
+if ($firewallRule) {
+    Write-Host "    ✅ Python firewall rule exists" -ForegroundColor Green
+} else {
+    Write-Host "    ⚠️  No Python firewall rule found" -ForegroundColor Yellow
+    Write-Host "    Backend may be blocked by firewall" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    🔄 Add firewall rule:" -ForegroundColor Cyan
+    Write-Host "    New-NetFirewallRule -DisplayName 'Python Backend' -Direction Inbound -Program 'C:\Users\subas\Desktop\AI HONEY\.venv\Scripts\python.exe' -Action Allow" -ForegroundColor White
+}
+
+Write-Host ""
+
+# ═══════════════════════════════════════════════════════
+# SUMMARY & RECOMMENDATIONS
+# ═══════════════════════════════════════════════════════
+Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "   DIAGNOSTIC SUMMARY" -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host ""
+
+if ($configPortalSSID) {
+    Write-Host "[WARNING] ISSUE DETECTED: ESP32 in Config Portal Mode" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "NEXT STEPS:" -ForegroundColor Yellow
+    Write-Host "1. Connect PC to 'HoneyBot_Setup' WiFi" -ForegroundColor White
+    Write-Host "2. Open http://192.168.4.1 in browser" -ForegroundColor White
+    Write-Host "3. Configure:" -ForegroundColor White
+    Write-Host "   - WiFi SSID: $WIFI_SSID" -ForegroundColor Cyan
+    Write-Host "   - WiFi Password: [your password]" -ForegroundColor Cyan
+    Write-Host "   - Backend URL: $BACKEND_URL" -ForegroundColor Cyan
+    Write-Host "   - API Key: $API_KEY" -ForegroundColor Cyan
+    Write-Host "4. Click SAVE" -ForegroundColor White
+    Write-Host "5. PHYSICALLY RESET ESP32 (press RST button)" -ForegroundColor White
+    Write-Host "6. Wait 30 seconds for connection" -ForegroundColor White
+    Write-Host "7. Run this script again" -ForegroundColor White
+} else {
+    Write-Host "✅ ESP32 likely configured correctly" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "If still not connecting:" -ForegroundColor Yellow
+    Write-Host "1. Check ESP32 serial monitor on $EXPECTED_COM at 115200 baud" -ForegroundColor White
+    Write-Host "2. Look for WiFi connection logs" -ForegroundColor White
+    Write-Host "3. Verify ESP32 received correct IP from router" -ForegroundColor White
+    Write-Host "4. Check router DHCP leases for ESP32" -ForegroundColor White
+    Write-Host "5. Try physical reset (RST button)" -ForegroundColor White
+}
+
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host ""
+
+# Optional: Serial Monitor Launch
+$launchSerial = Read-Host "Launch Arduino IDE Serial Monitor? (y/n)"
+if ($launchSerial -eq "y") {
+    Write-Host "Opening Arduino IDE..." -ForegroundColor Cyan
+    Start-Process "arduino.exe" -ErrorAction SilentlyContinue
+}

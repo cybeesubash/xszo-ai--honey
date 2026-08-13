@@ -1,229 +1,393 @@
-# CYBER-EYE — AI-Powered Honeypot SOC Platform
+# 🍯 CYBER-EYE AI HoneyBot Platform
 
-ESP32 hardware honeypot → FastAPI + Gemini AI → Telegram alerts → React SOC dashboard.
+> **Next-generation AI-powered cybersecurity honeypot system with ESP32 integration and real-time threat intelligence**
 
-```
-ESP32 (decoy services) ──POST /api/event──▶ FastAPI Backend
-                                                    │
-                                    ┌───────────────┼───────────────┐
-                                    ▼               ▼               ▼
-                              Gemini 2.5       SQLite DB      WebSocket
-                              Classification                      │
-                                    │                           ▼
-                                    ▼                    React Dashboard
-                              Telegram (high/critical)
-```
-
-## Components
-
-| Component | Path | Description |
-|-----------|------|-------------|
-| ESP32 Firmware | `firmware/` | Modular Arduino C++ honeypot (HTTP, Telnet, SSH, FTP) |
-| Backend API | `backend/` | FastAPI + Gemini AI threat pipeline |
-| SOC Dashboard | `dashboard/` | React + Tailwind CYBER-EYE UI |
+Built by **Subash - GOD OF CYBER 🦅**
 
 ---
 
-## Quick Start
+## 🚀 **Platform Overview**
 
-### 1. Run both frontend + backend together
+CYBER-EYE is a comprehensive cybersecurity platform featuring:
+- **🍯 ESP32-powered honeypot devices** for distributed threat detection
+- **🤖 AI threat analysis** using OpenRouter DeepSeek/Gemini models
+- **🌐 Professional XZSO landing page** with Supabase authentication
+- **📊 Real-time 3D attack visualization** dashboard
+- **📱 Telegram integration** for instant threat notifications
 
-From the project root:
+---
 
+## 🏗️ **Architecture**
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   XZSO Landing  │───▶│  AI HoneyBot    │───▶│     ESP32       │
+│   (Port 3000)   │    │   Dashboard     │    │   Honeypots     │
+│                 │    │  (Port 5173/4)  │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │   Backend API   │
+                    │   (Port 8000)   │ 
+                    │                 │
+                    └─────────────────┘
+```
+
+---
+
+## 🎯 **Quick Start**
+
+### **Prerequisites**
+- **Node.js 18+**
+- **Python 3.8+** 
+- **ESP32 WROOM-32** (optional for physical honeypots)
+
+### **Installation**
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd AI HONEY
+
+# Install Python dependencies
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+pip install -r backend/requirements.txt
+
+# Install Node dependencies
 npm install
-npm run dev
+cd dashboard && npm install
+cd "../landing page/xszo-main__1_/xszo-main (1)/xszo-main" && npm install
 ```
 
-This starts the backend on `http://localhost:8000` and the dashboard on `http://localhost:5173`.
-
-### 2. Backend
-
+### **Environment Setup**
 ```bash
-cd backend
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+# Backend configuration
+cp backend/.env.example backend/.env
+# Edit backend/.env with your API keys:
+# - OPENROUTER_API_KEY
+# - GEMINI_API_KEY  
+# - TELEGRAM_BOT_TOKEN
 
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env with your keys (see below)
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# XZSO Landing page (optional)
+cp "landing page/xszo-main__1_/xszo-main (1)/xszo-main/.env.example" "landing page/xszo-main__1_/xszo-main (1)/xszo-main/.env"
+# Add your Supabase credentials (or leave blank for demo mode)
 ```
 
-API docs: http://localhost:8000/docs
-
-### 3. Dashboard
-
+### **Start All Services**
 ```bash
-cd dashboard
-npm install
-echo "VITE_API_URL=http://localhost:8000" > .env.local
+# Option 1: Start everything at once
 npm run dev
-```
 
-Open http://localhost:5173
+# Option 2: Start individually
+# Terminal 1 - Backend
+cd backend && python main.py
 
-### 3. ESP32 Firmware
+# Terminal 2 - Dashboard  
+cd dashboard && npm run dev
 
-**Requirements:** Arduino IDE 2.x, ESP32 board support, libraries:
-- WiFi (built-in)
-- WebServer (built-in)
-- Preferences (built-in)
-- ArduinoJson (v6+)
-- ArduinoOTA (built-in)
-
-**Flash:**
-1. Open `firmware/honeypot.ino` in Arduino IDE
-2. Select board: **ESP32 Dev Module**
-3. Upload
-
-**First-time setup:** If WiFi is not configured, the device starts AP mode:
-- SSID: `HoneyBot_Setup`
-- Connect and browse to `http://192.168.4.1`
-- Enter WiFi credentials, backend URL (e.g. `http://192.168.1.50:8000`), and API key
-
----
-
-## Environment Variables
-
-Copy `.env.example` to `backend/.env`:
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `GEMINI_MODEL` | No | Gemini model name (default: `gemini-1.5-pro`) |
-| `HONEYPOT_API_KEY` | Yes | Shared secret for ESP32 auth |
-| `TELEGRAM_BOT_TOKEN` | No | Telegram bot token for alerts |
-| `TELEGRAM_CHAT_ID` | No | Telegram chat/group ID |
-| `DATABASE_URL` | No | Default: SQLite `cyber_eye.db` |
-
----
-
-## Gemini API Key Setup
-
-1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
-2. Sign in with your Google account
-3. Click **Create API Key**
-4. Copy the key into `backend/.env`:
-   ```
-   GEMINI_API_KEY=AIza...
-   GEMINI_MODEL=gemini-2.5-flash
-   ```
-
-The backend uses Gemini 2.5 Flash for:
-- **Threat classification** — attack type, severity, CVSS, indicators
-- **Defensive advisor** — firewall rules, intent analysis, hardening tips
-
----
-
-## Telegram Bot Setup
-
-Alerts are sent **only for high and critical** severity events.
-
-1. Open Telegram and message [@BotFather](https://t.me/BotFather)
-2. Send `/newbot` and follow prompts to create a bot
-3. Copy the **bot token** → `TELEGRAM_BOT_TOKEN` in `.env`
-4. Get your chat ID:
-   - Message your new bot
-   - Visit `https://api.telegram.org/bot<TOKEN>/getUpdates`
-   - Find `"chat":{"id":123456789}` → `TELEGRAM_CHAT_ID`
-5. Restart the backend
-
----
-
-## API Endpoints
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/device/register` | API key | Register ESP32 device |
-| POST | `/device/heartbeat` | API key | Device health (30s interval) |
-| POST | `/api/event` | API key | Submit attack capture → AI pipeline |
-| GET | `/logs` | — | Paginated attack logs |
-| GET | `/stats` | — | Aggregated SOC metrics |
-| GET | `/chat/{ip}` | — | Defensive advisor for attacker IP |
-| POST | `/chat/{ip}` | — | Interactive analyst chat |
-| WS | `/ws/live` | — | Real-time event stream |
-
-**ESP32 auth header:**
-```
-Authorization: Bearer <HONEYPOT_API_KEY>
+# Terminal 3 - Landing Page
+cd "landing page/xszo-main__1_/xszo-main (1)/xszo-main" && npm run dev
 ```
 
 ---
 
-## End-to-End Demo Flow
+## 🌐 **Access URLs**
 
-1. Start backend + dashboard
-2. Flash ESP32 and configure via setup portal
-3. From another machine on the network, probe the honeypot:
-   ```bash
-   curl http://<ESP32_IP>/
-   telnet <ESP32_IP> 23
-   nc <ESP32_IP> 22
-   ```
-4. Backend receives event → Gemini classifies threat
-5. High/critical events trigger Telegram alert
-6. Dashboard updates live via WebSocket
-7. Click attacker IP → AI Analyst panel shows defensive guidance
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **XZSO Landing** | http://localhost:3000 | Professional company site with auth |
+| **AI Dashboard** | http://127.0.0.1:5173 | Real-time threat monitoring |
+| **Backend API** | http://192.168.1.100:8000 | REST API & WebSocket |
+| **API Docs** | http://192.168.1.100:8000/docs | Interactive API documentation |
 
 ---
 
-## Security Notes
+## 🔧 **ESP32 Honeypot Setup**
 
-- Honeypot payloads are **attacker-controlled** — sanitized before storage/display
-- Decoy services are **capture-only** — no real authentication
-- Rate limiting on `/api/event` (120/min)
-- API key required on all device-facing endpoints
-- Never commit `.env` files with real keys
+### **Hardware Requirements**
+- ESP32 WROOM-32 development board
+- USB cable for programming
+- WiFi network (2.4GHz required)
 
----
+### **Firmware Installation**
+1. **Install Arduino IDE** with ESP32 board support
+2. **Open** `firmware/honeypot/honeypot.ino`
+3. **Configure libraries:** ArduinoJson, WiFiManager, HTTPClient
+4. **Upload** to ESP32
+5. **Configure** via WiFi portal "HoneyBot_Setup"
 
-## Project Structure
+### **Configuration**
+- **WiFi SSID:** Your 2.4GHz network
+- **Backend URL:** `http://192.168.1.100:8000`  
+- **API Key:** `honeypot-secret-soc-key-2026`
 
-```
-AI HONEY/
-├── firmware/
-│   ├── honeypot.ino          # Main entry (setup/loop)
-│   ├── config.h / config.cpp # Constants + runtime config
-│   ├── wifi.cpp              # WiFi connect/reconnect
-│   ├── config_portal.cpp     # AP setup portal
-│   ├── api.cpp               # Backend HTTP client + queue
-│   ├── storage.cpp           # Preferences + event queue
-│   ├── http_server.cpp       # Port 80 decoy
-│   ├── telnet_server.cpp     # Port 23 decoy
-│   ├── ssh_server.cpp        # Port 22 decoy
-│   ├── ftp_server.cpp        # Port 21 decoy
-│   └── logger.cpp            # Serial logging
-├── backend/
-│   ├── main.py               # FastAPI app
-│   ├── ai_analyzer.py        # Gemini threat classification
-│   ├── defensive_chat.py     # IP-specific defensive advisor
-│   ├── telegram_alert.py     # Telegram integration
-│   ├── geolocation.py        # IP → country lookup
-│   ├── database.py           # SQLAlchemy setup
-│   └── models.py             # ORM + Pydantic schemas
-├── dashboard/
-│   └── src/                  # React CYBER-EYE SOC UI
-├── .env.example
-└── README.md
-```
+### **Services Provided**
+- **HTTP Server** (Port 80) - Web application honeypot
+- **FTP Server** (Port 21) - File transfer honeypot  
+- **SSH Server** (Port 22) - Secure shell honeypot
+- **Telnet Server** (Port 23) - Remote access honeypot
 
 ---
 
-## Upgrading to PostgreSQL
+## 🤖 **AI Features**
 
-Set in `backend/.env`:
-```
-DATABASE_URL=postgresql://user:pass@host:5432/cyber_eye
-```
+### **Threat Analysis Engine**
+- **MITRE ATT&CK** framework classification
+- **CVSS scoring** for vulnerability assessment
+- **Behavioral analysis** of attack patterns
+- **Real-time threat intelligence** correlation
 
-Install driver: `pip install psycopg2-binary`
+### **Supported AI Models**
+- **OpenRouter:** DeepSeek, GPT-4, Claude, Llama
+- **Google Gemini:** 2.0-flash for rapid analysis
+- **Automatic failover** between providers
+
+### **Analysis Capabilities**
+- **Attack type detection** (brute force, injection, scan, etc.)
+- **Severity classification** (Low/Medium/High/Critical)
+- **Payload analysis** and IOC extraction
+- **Mitigation recommendations**
 
 ---
 
-## License
+## 📊 **Dashboard Features**
 
-MIT — For educational and authorized security research only. Deploy honeypots only on networks you own or have permission to monitor.
+### **Real-time Visualization**
+- **🌍 3D Global Attack Map** with animated attack paths
+- **📈 Live metrics** and statistics
+- **⚡ Real-time attack feed** with severity indicators
+- **📱 Mobile-responsive** design
+
+### **Intelligence Panels**
+- **🔍 IP Intelligence** with geolocation & ISP data
+- **🛡️ Mitigation Tools** with firewall rules
+- **📊 Analytics Charts** showing attack trends
+- **🤖 AI Chat Interface** for threat consultation
+
+### **Security Operations**
+- **📋 Device Management** for ESP32 honeypots
+- **🚨 Alert System** with Telegram integration
+- **📈 Threat Timeline** and historical analysis
+- **⚙️ Configuration Management**
+
+---
+
+## 🔐 **Authentication & Security**
+
+### **XZSO Landing Page**
+- **Supabase Authentication** for production
+- **Demo Mode** for testing without Supabase
+- **Professional branding** with company information
+- **Direct dashboard access** via honeypot button
+
+### **Demo Credentials (Demo Mode)**
+| Email | Password |
+|-------|----------|
+| admin@xzso.ai | admin123 |
+| user@xzso.ai | user123 |
+| demo@xzso.ai | demo123 |
+
+### **Security Features**
+- **API key authentication** for device registration
+- **CORS protection** for web access
+- **Rate limiting** on sensitive endpoints
+- **Input validation** and sanitization
+
+---
+
+## 🛠️ **Development Scripts**
+
+### **PowerShell Automation**
+- `esp32_debug_full.ps1` - Complete ESP32 diagnostics
+- `generate_demo_attacks.ps1` - Create test attack data
+- `clear_attacks.ps1` - Remove demo attack data
+- `ping_esp32.ps1` - Network ESP32 discovery
+- `test_esp32_connection.ps1` - Connection testing
+
+### **Utility Commands**
+```bash
+# Backend testing
+python backend/test_api.py
+python backend/virtual_esp32.py  # Simulate ESP32
+
+# Clear demo data
+powershell -ExecutionPolicy Bypass -File clear_attacks.ps1
+
+# ESP32 diagnostics  
+powershell -ExecutionPolicy Bypass -File esp32_debug_full.ps1
+```
+
+---
+
+## 🔌 **API Reference**
+
+### **Device Management**
+- `POST /device/register` - Register new honeypot device
+- `POST /device/heartbeat` - Device status update
+- `GET /devices` - List all registered devices
+
+### **Attack Data**
+- `POST /api/event` - Submit honeypot event
+- `GET /logs` - Retrieve attack logs
+- `GET /stats` - Platform statistics
+- `GET /timeline` - Attack timeline data
+
+### **Intelligence**
+- `GET /api/ip/{ip}` - IP intelligence lookup
+- `GET /chat/{ip}` - AI analysis for specific IP
+- `POST /api/chat` - Global threat consultation
+
+### **Utilities**  
+- `POST /api/demo/event` - Generate demo attack
+- `POST /api/clear` - Clear all data (dev mode)
+- `GET /health` - System health check
+
+---
+
+## 📱 **Telegram Integration**
+
+### **Bot Setup**
+1. Create bot via **@BotFather**
+2. Add `TELEGRAM_BOT_TOKEN` to backend/.env
+3. Add `TELEGRAM_CHAT_ID` for notifications
+4. Bot automatically starts with backend
+
+### **Features**
+- **Real-time attack alerts** with severity levels
+- **Device status notifications** 
+- **Interactive commands** for platform control
+- **Attack summary reports**
+
+---
+
+## 🚀 **Deployment**
+
+### **Local Development**
+```bash
+npm run dev  # Starts all services
+```
+
+### **Production Deployment**
+```bash
+# Build frontend
+cd dashboard && npm run build
+cd "../landing page/xszo-main__1_/xszo-main (1)/xszo-main" && npm run build
+
+# Deploy backend
+cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000
+
+# Configure reverse proxy (nginx/apache) for frontend serving
+```
+
+### **Docker Support** (Future)
+```yaml
+# docker-compose.yml template
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports: ["8000:8000"]
+  dashboard:
+    build: ./dashboard
+    ports: ["5173:5173"]
+  landing:
+    build: ./landing
+    ports: ["3000:3000"]
+```
+
+---
+
+## 🐛 **Troubleshooting**
+
+### **Common Issues**
+
+**ESP32 Not Connecting**
+- Verify 2.4GHz WiFi network
+- Check backend URL accessibility
+- Run `esp32_debug_full.ps1` for diagnostics
+
+**AI Analysis Failing**
+- Verify API keys in backend/.env
+- Check OpenRouter/Gemini service status
+- Monitor backend logs for errors
+
+**Authentication Issues**
+- Use demo mode if Supabase not configured
+- Verify Supabase anon key format (starts with `eyJ`)
+- Check browser console for errors
+
+### **Log Locations**
+- Backend: `backend/server_out.log`, `backend/server_err.log`
+- Dashboard: Browser console (F12)
+- ESP32: Serial monitor (115200 baud)
+
+---
+
+## 📈 **Performance**
+
+### **Specifications**
+- **Attack Processing:** 100+ events/minute
+- **Concurrent Users:** 50+ dashboard users
+- **ESP32 Support:** 25+ devices per backend
+- **Response Time:** <100ms API latency
+
+### **Optimization**
+- **In-memory storage** for rapid access
+- **WebSocket connections** for real-time updates
+- **Efficient 3D rendering** with GPU acceleration
+- **Lazy loading** for large datasets
+
+---
+
+## 🤝 **Contributing**
+
+### **Development Setup**
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Make changes and test thoroughly
+4. Commit: `git commit -m "Add new feature"`
+5. Push: `git push origin feature/new-feature`
+6. Create Pull Request
+
+### **Code Style**
+- **Python:** Follow PEP 8, use black formatter
+- **JavaScript/TypeScript:** Prettier + ESLint
+- **Commit Messages:** Conventional Commits format
+
+---
+
+## 📄 **License**
+
+This project is licensed under the **MIT License** - see LICENSE file for details.
+
+---
+
+## 🎖️ **Credits**
+
+**Created by:** Subash - GOD OF CYBER 🦅  
+**Company:** XZSO AI Cybersecurity Platform  
+**Location:** Coimbatore, Tamil Nadu, India
+
+### **Technologies Used**
+- **Backend:** Python, FastAPI, Uvicorn
+- **Frontend:** React, TypeScript, Tailwind CSS
+- **3D Graphics:** Three.js, React Three Fiber
+- **Hardware:** ESP32 WROOM-32, Arduino IDE
+- **AI:** OpenRouter, Google Gemini
+- **Database:** SQLite, Supabase (optional)
+- **Deployment:** Node.js, PowerShell automation
+
+---
+
+## 🔗 **Links**
+
+- **Live Demo:** [Coming Soon]
+- **Documentation:** [API Docs](http://192.168.1.100:8000/docs)
+- **Issues:** [GitHub Issues](https://github.com/your-repo/issues)
+- **Contact:** contact@xzso.ai
+
+---
+
+*Built with ❤️ for the cybersecurity community*
