@@ -26,6 +26,8 @@ from fastapi import (
     status,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -197,6 +199,15 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization", "X-Honeypot-Key"],
 )
 
+# Serve dashboard static files (when running from backend/ folder)
+import pathlib
+dashboard_dist = pathlib.Path(__file__).parent.parent / "dashboard" / "dist"
+if dashboard_dist.exists():
+    app.mount("/assets", StaticFiles(directory=str(dashboard_dist / "assets")), name="assets")
+    logger.info("📊 Dashboard static files mounted at /assets")
+else:
+    logger.warning("⚠️ Dashboard dist folder not found at %s - API only mode", dashboard_dist)
+
 
 @app.middleware("http")
 async def normalize_path_slashes(request: Request, call_next):
@@ -242,11 +253,17 @@ async def verify_api_key(
 
 @app.get("/")
 async def root():
+    # Serve dashboard if available, otherwise API info
+    dashboard_index = pathlib.Path(__file__).parent.parent / "dashboard" / "dist" / "index.html"
+    if dashboard_index.exists():
+        return FileResponse(str(dashboard_index))
+    
     return {
         "service": "CYBER-EYE SOC Backend API",
         "status": "running",
         "docs": "/docs",
         "health": "/health",
+        "message": "Dashboard not found. Deploy frontend separately or build dashboard first.",
     }
 
 
