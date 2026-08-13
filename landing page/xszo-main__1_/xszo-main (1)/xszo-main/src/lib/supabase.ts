@@ -1,31 +1,65 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase credentials are loaded from Vite env vars when available.
-// Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env for local development.
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://pfjkuypvxlcrvwgwvtif.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmanV5cHZ4bGNydndnd3Z0aWYiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczNDAxMTgwMywiZXhwIjoyMDQ5NTg3ODAzfQ.sb_publishable_t7vaE3o3r1wnf1YNVXg0ow__aG2J1o'
+// Check if we're in demo mode
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true' || !import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase configuration: please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
-}
+// Demo credentials for local development
+const DEMO_USERS = [
+  { email: 'admin@xzso.ai', password: 'admin123', role: 'admin' },
+  { email: 'user@xzso.ai', password: 'user123', role: 'user' },
+  { email: 'demo@xzso.ai', password: 'demo123', role: 'demo' }
+]
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Supabase configuration (only used if not in demo mode)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://demo.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'demo-key'
+
+// Create Supabase client (will be null in demo mode)
+export const supabase = isDemoMode ? null : createClient(supabaseUrl, supabaseAnonKey)
 
 // Auth helper functions
 export const auth = {
   // Sign up new user
   async signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({
+    if (isDemoMode) {
+      // Demo mode: just return success for any valid email format
+      if (email.includes('@')) {
+        return { 
+          data: { 
+            user: { id: 'demo-' + Date.now(), email }, 
+            session: { access_token: 'demo-token' } 
+          }, 
+          error: null 
+        }
+      }
+      return { data: null, error: { message: 'Invalid email format' } }
+    }
+    
+    const { data, error } = await supabase!.auth.signUp({
       email,
       password,
     })
     return { data, error }
   },
 
-  // Sign in user
+  // Sign in user  
   async signIn(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    if (isDemoMode) {
+      // Demo mode: check against predefined users
+      const user = DEMO_USERS.find(u => u.email === email && u.password === password)
+      if (user) {
+        return { 
+          data: { 
+            user: { id: user.role + '-demo', email: user.email }, 
+            session: { access_token: 'demo-token-' + user.role } 
+          }, 
+          error: null 
+        }
+      }
+      return { data: null, error: { message: 'Invalid credentials' } }
+    }
+
+    const { data, error } = await supabase!.auth.signInWithPassword({
       email,
       password,
     })
@@ -34,19 +68,32 @@ export const auth = {
 
   // Sign out user
   async signOut() {
-    const { error } = await supabase.auth.signOut()
+    if (isDemoMode) {
+      return { error: null }
+    }
+    
+    const { error } = await supabase!.auth.signOut()
     return { error }
   },
 
   // Get current user
   async getUser() {
-    const { data: { user } } = await supabase.auth.getUser()
+    if (isDemoMode) {
+      return { id: 'demo-user', email: 'demo@xzso.ai' }
+    }
+    
+    const { data: { user } } = await supabase!.auth.getUser()
     return user
   },
 
   // Listen to auth changes
   onAuthStateChange(callback: (event: string, session: any) => void) {
-    return supabase.auth.onAuthStateChange(callback)
+    if (isDemoMode) {
+      // Demo mode: return a dummy unsubscribe function
+      return { data: { subscription: { unsubscribe: () => {} } } }
+    }
+    
+    return supabase!.auth.onAuthStateChange(callback)
   }
 }
 
@@ -54,7 +101,12 @@ export const auth = {
 export const db = {
   // Save user profile
   async saveProfile(userId: string, profile: any) {
-    const { data, error } = await supabase
+    if (isDemoMode) {
+      // Demo mode: just return success
+      return { data: { id: userId, ...profile }, error: null }
+    }
+    
+    const { data, error } = await supabase!
       .from('profiles')
       .upsert({ id: userId, ...profile })
     return { data, error }
@@ -62,7 +114,20 @@ export const db = {
 
   // Get user profile
   async getProfile(userId: string) {
-    const { data, error } = await supabase
+    if (isDemoMode) {
+      // Demo mode: return default profile
+      return { 
+        data: { 
+          id: userId, 
+          name: 'Demo User', 
+          role: 'demo',
+          created_at: new Date().toISOString()
+        }, 
+        error: null 
+      }
+    }
+    
+    const { data, error } = await supabase!
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -70,5 +135,9 @@ export const db = {
     return { data, error }
   }
 }
+
+// Export demo mode status for other components
+export const demoMode = isDemoMode
+export const demoCredentials = isDemoMode ? DEMO_USERS : []
 
 export default supabase
