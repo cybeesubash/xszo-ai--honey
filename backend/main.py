@@ -26,20 +26,22 @@ from fastapi import (
     status,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from ai_analyzer import analyze_attack, get_active_engine_name
-from defensive_chat import (
+from backend.ai_analyzer import analyze_attack, get_active_engine_name
+from backend.defensive_chat import (
     analyze_campaign_correlation,
     chat_about_ip,
     chat_global_soc,
     get_defensive_advisor,
 )
-from geolocation import lookup_country
-from ip_intel import get_full_ip_intelligence
-from models import (
+from backend.geolocation import lookup_country
+from backend.ip_intel import get_full_ip_intelligence
+from backend.models import (
     AttackLogOut,
     AttackRecord,
     ChatMessageIn,
@@ -50,8 +52,8 @@ from models import (
     EventIn,
     StatsOut,
 )
-from telegram_alert import send_telegram_alert
-from telegram_bot import start_bot_polling
+from backend.telegram_alert import send_telegram_alert
+from backend.telegram_bot import start_bot_polling
 
 load_dotenv()
 
@@ -197,6 +199,15 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization", "X-Honeypot-Key"],
 )
 
+# Serve dashboard static files if they exist
+import pathlib
+dashboard_dist = pathlib.Path(__file__).parent.parent / "dashboard" / "dist"
+if dashboard_dist.exists():
+    app.mount("/assets", StaticFiles(directory=str(dashboard_dist / "assets")), name="assets")
+    logger.info("📊 Dashboard static files mounted at /assets")
+else:
+    logger.warning("⚠️ Dashboard dist folder not found - API only mode")
+
 
 @app.middleware("http")
 async def normalize_path_slashes(request: Request, call_next):
@@ -242,6 +253,11 @@ async def verify_api_key(
 
 @app.get("/")
 async def root():
+    # Serve dashboard if available, otherwise API info
+    dashboard_index = pathlib.Path(__file__).parent.parent / "dashboard" / "dist" / "index.html"
+    if dashboard_index.exists():
+        return FileResponse(str(dashboard_index))
+    
     return {
         "service": "CYBER-EYE SOC Backend API",
         "status": "running",
@@ -563,7 +579,7 @@ async def get_campaign_correlation():
 @app.get("/api/ip/{ip}")
 async def get_ip_intelligence_api(ip: str):
     """Get comprehensive IP intelligence including geolocation, ISP, ASN, threat data."""
-    from geolocation import get_ip_intelligence
+    from backend.geolocation import get_ip_intelligence
     
     intel = get_ip_intelligence(ip)
     
@@ -644,7 +660,7 @@ async def dispatch_telegram_ip_report(ip: str):
         f"<b>Rule:</b> <code>{intel['mitigation']['iptables']}</code>\n"
     )
     try:
-        from telegram_alert import _send_sync
+        from backend.telegram_alert import _send_sync
         await asyncio.to_thread(_send_sync, msg)
         return {"status": "sent", "ip": ip}
     except Exception as exc:
