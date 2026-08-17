@@ -1,0 +1,93 @@
+╔══════════════════════════════════════════════════════════════════╗
+║           RENDER IMPORT FIX - Module Not Found Error            ║
+╚══════════════════════════════════════════════════════════════════╝
+
+PROBLEM: ModuleNotFoundError: No module named 'ai_analyzer'
+CAUSE: Python imports in backend/main.py are relative, not absolute
+SOLUTION: Push updated code with fixed imports to GitHub
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ WHAT WAS FIXED                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+1. Updated backend/main.py imports:
+   OLD: from ai_analyzer import ...
+   NEW: from backend.ai_analyzer import ...
+
+2. Created backend/__init__.py:
+   Makes backend a proper Python package
+
+3. All imports now use absolute paths:
+   - from backend.ai_analyzer import ...
+   - from backend.defensive_chat import ...
+   - from backend.geolocation import ...
+   - from backend.models import ...
+   - from backend.telegram_alert import ...
+   - from backend.telegram_bot import ...
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🚀 NEXT STEPS - PUSH TO GITHUB                                   │
+└──────────────────────────────────────────────────────────────────┘
+
+1. Add all changes:
+   git add backend/main.py backend/__init__.py
+
+2. Commit the fix:
+   git commit -m "fix: update imports for Render deployment"
+
+3. Push to GitHub:
+   git push origin main
+
+4. Render will auto-deploy (or manually trigger deploy)
+
+5. Wait 2-3 minutes for deployment
+
+6. Service should start successfully!
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📋 COMPLETE WORKING CONFIGURATION                                │
+└──────────────────────────────────────────────────────────────────┘
+
+Service Name: cyber-eye-platform
+Environment: Python 3
+Root Directory: (blank)
+Branch: main
+
+Build Command:
+cd dashboard && npm install --legacy-peer-deps && npm run build && cd ../backend && pip install -r requirements.txt
+
+Start Command:
+python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+
+Environment Variables:
+PYTHON_VERSION=3.11.0
+NODE_VERSION=18.17.0
+OPENROUTER_API_KEY=<your-key>
+GEMINI_API_KEY=<your-key>
+TELEGRAM_BOT_TOKEN=<your-token>
+TELEGRAM_CHAT_ID=<your-id>
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ AFTER PUSH, VERIFY DEPLOYMENT                                 │
+└──────────────────────────────────────────────────────────────────┘
+
+1. Watch Render logs for:
+   "INFO:     Application startup complete."
+   "INFO:     Uvicorn running on http://0.0.0.0:XXXX"
+
+2. Test URLs:
+   Dashboard:  https://your-service.onrender.com/
+   Health:     https://your-service.onrender.com/health
+   API Docs:   https://your-service.onrender.com/docs
+
+3. Expected response from /health:
+   {
+     "service": "CYBER-EYE SOC Backend API",
+     "status": "ok",
+     "engine": "openrouter",
+     "timestamp": "2026-08-13T..."
+   }
+
+╔══════════════════════════════════════════════════════════════════╗
+║  Push the code and Render will automatically redeploy!          ║
+╚══════════════════════════════════════════════════════════════════╝

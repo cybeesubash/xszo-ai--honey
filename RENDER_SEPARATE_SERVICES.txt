@@ -1,0 +1,159 @@
+╔══════════════════════════════════════════════════════════════════╗
+║        RENDER DEPLOYMENT - SEPARATE SERVICES (RECOMMENDED)       ║
+║                   CYBER-EYE by Subash 🦅                         ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Deploy Backend and Dashboard as 2 separate services for better control!
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🔥 SERVICE 1: BACKEND API (Deploy This First!)                   │
+└──────────────────────────────────────────────────────────────────┘
+
+Name: cyber-eye-backend
+Environment: Python 3
+Root Directory: backend
+Branch: main
+
+Build Command:
+────────────────────────────────────────────────────────────────
+pip install -r requirements.txt
+────────────────────────────────────────────────────────────────
+
+Start Command:
+────────────────────────────────────────────────────────────────
+python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+────────────────────────────────────────────────────────────────
+
+Environment Variables:
+PYTHON_VERSION=3.11.0
+OPENROUTER_API_KEY=<your-key>
+GEMINI_API_KEY=<your-key>
+TELEGRAM_BOT_TOKEN=<your-token>
+TELEGRAM_CHAT_ID=<your-id>
+
+Health Check Path:
+/health
+
+After Deploy, Copy URL:
+https://cyber-eye-backend.onrender.com (your actual URL)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📊 SERVICE 2: DASHBOARD (Deploy After Backend!)                  │
+└──────────────────────────────────────────────────────────────────┘
+
+Name: cyber-eye-dashboard
+Environment: Node
+Root Directory: dashboard
+Branch: main
+
+Build Command:
+────────────────────────────────────────────────────────────────
+npm install --legacy-peer-deps && npm run build
+────────────────────────────────────────────────────────────────
+
+Start Command:
+────────────────────────────────────────────────────────────────
+npx serve -s dist -p $PORT
+────────────────────────────────────────────────────────────────
+
+Environment Variables (USE YOUR BACKEND URL!):
+NODE_VERSION=18.17.0
+VITE_API_URL=https://cyber-eye-backend.onrender.com
+VITE_BACKEND_PROXY=https://cyber-eye-backend.onrender.com
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🚀 DEPLOYMENT STEPS                                              │
+└──────────────────────────────────────────────────────────────────┘
+
+STEP 1: DEPLOY BACKEND
+═══════════════════════
+1. Go to https://dashboard.render.com
+2. Click "New +" → "Web Service"
+3. Connect GitHub: cybeesubash/xszo-ai--honey
+4. Fill in Backend details above
+5. Click "Create Web Service"
+6. Wait 5-8 minutes for build
+7. ✅ Copy Backend URL: https://cyber-eye-backend.onrender.com
+
+STEP 2: DEPLOY DASHBOARD
+═════════════════════════
+1. Click "New +" → "Web Service" again
+2. Connect same GitHub repo
+3. Fill in Dashboard details above
+4. ⚠️ IMPORTANT: Replace backend URL in env vars with YOUR actual URL!
+5. Click "Create Web Service"
+6. Wait 5-8 minutes for build
+7. ✅ Dashboard URL: https://cyber-eye-dashboard.onrender.com
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🔧 STEP 3: UPDATE BACKEND CORS (IMPORTANT!)                      │
+└──────────────────────────────────────────────────────────────────┘
+
+After both services are live, update backend CORS:
+
+1. Go to Backend service → Environment
+2. Add new variable:
+   CORS_ORIGINS=https://cyber-eye-dashboard.onrender.com,http://localhost:5173
+3. Save and redeploy backend
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ VERIFY DEPLOYMENT                                             │
+└──────────────────────────────────────────────────────────────────┘
+
+Backend Health:
+curl https://cyber-eye-backend.onrender.com/health
+
+Backend API Docs:
+https://cyber-eye-backend.onrender.com/docs
+
+Dashboard:
+https://cyber-eye-dashboard.onrender.com/
+(Should show 3D globe and load data from backend)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 💡 ADVANTAGES OF SEPARATE SERVICES                               │
+└──────────────────────────────────────────────────────────────────┘
+
+✓ Deploy independently (backend changes don't affect dashboard)
+✓ Scale separately (upgrade one service without the other)
+✓ Easier debugging (separate logs for each)
+✓ Faster builds (only rebuild what changed)
+✓ Standard architecture (API + Frontend separation)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🎯 FINAL URLS                                                    │
+└──────────────────────────────────────────────────────────────────┘
+
+Backend API:    https://cyber-eye-backend.onrender.com
+API Docs:       https://cyber-eye-backend.onrender.com/docs
+Health Check:   https://cyber-eye-backend.onrender.com/health
+
+Dashboard:      https://cyber-eye-dashboard.onrender.com
+User Access:    Share this URL with your team!
+
+ESP32 Config:
+Backend URL:    https://cyber-eye-backend.onrender.com
+API Key:        honeypot-secret-soc-key-2026
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🐛 TROUBLESHOOTING                                               │
+└──────────────────────────────────────────────────────────────────┘
+
+Dashboard shows "Network Error":
+→ Check VITE_API_URL matches your backend URL exactly
+→ Update CORS_ORIGINS in backend with dashboard URL
+→ Redeploy both services
+
+Backend not starting:
+→ Check environment variables are set
+→ View logs in Render dashboard
+→ Verify requirements.txt exists in backend/
+
+Dashboard not building:
+→ Use --legacy-peer-deps flag in build command
+→ Check package.json exists in dashboard/
+→ Clear build cache and redeploy
+
+╔══════════════════════════════════════════════════════════════════╗
+║  2 Services = Better Architecture! Deploy Backend First! 🚀     ║
+╚══════════════════════════════════════════════════════════════════╝

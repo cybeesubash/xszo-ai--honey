@@ -1,0 +1,103 @@
+╔══════════════════════════════════════════════════════════════════╗
+║          RENDER.COM DEPLOYMENT - QUICK REFERENCE CARD            ║
+║                  CYBER-EYE Platform by Subash 🦅                 ║
+╚══════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📡 SERVICE 1: BACKEND API                                        │
+└──────────────────────────────────────────────────────────────────┘
+  Name: cyber-eye-backend
+  Environment: Python 3
+  Root Directory: backend
+  
+  Build Command:
+  pip install -r requirements.txt
+  
+  Start Command:
+  python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+  
+  Environment Variables (ADD THESE!):
+  - OPENROUTER_API_KEY = <your-key>
+  - GEMINI_API_KEY = <your-key>
+  - TELEGRAM_BOT_TOKEN = <your-token>
+  - TELEGRAM_CHAT_ID = <your-id>
+  - PYTHON_VERSION = 3.11.0
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📊 SERVICE 2: DASHBOARD                                          │
+└──────────────────────────────────────────────────────────────────┘
+  Name: cyber-eye-dashboard
+  Environment: Node
+  Root Directory: dashboard
+  
+  Build Command:
+  npm install && npm run build
+  
+  Start Command:
+  npx serve -s dist -p $PORT
+  
+  Environment Variables (ADD AFTER BACKEND IS LIVE!):
+  - VITE_API_URL = https://cyber-eye-backend.onrender.com
+  - VITE_BACKEND_PROXY = https://cyber-eye-backend.onrender.com
+  - NODE_VERSION = 18.17.0
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🌐 SERVICE 3: XZSO LANDING PAGE                                  │
+└──────────────────────────────────────────────────────────────────┘
+  Name: xzso-landing
+  Environment: Node
+  Root Directory: landing page/xszo-main__1_/xszo-main (1)/xszo-main
+  
+  Build Command:
+  npm install && npm run build
+  
+  Start Command:
+  npm run start
+  
+  Environment Variables:
+  - VITE_DEMO_MODE = true
+  - NODE_VERSION = 18.17.0
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ⚡ DEPLOYMENT ORDER (IMPORTANT!)                                 │
+└──────────────────────────────────────────────────────────────────┘
+  1. Deploy BACKEND first
+  2. Copy backend URL
+  3. Deploy DASHBOARD (use backend URL in env vars)
+  4. Deploy LANDING PAGE
+  5. Test all services
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ VERIFY DEPLOYMENT                                             │
+└──────────────────────────────────────────────────────────────────┘
+  Backend: https://your-backend.onrender.com/health
+  Dashboard: https://your-dashboard.onrender.com/
+  Landing: https://your-landing.onrender.com/
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🔥 COMMON ISSUES                                                 │
+└──────────────────────────────────────────────────────────────────┘
+  Build Failed?
+  → Check logs in Render dashboard
+  → Verify package.json/requirements.txt
+  
+  Service Won't Start?
+  → Make sure Start Command uses $PORT
+  → Check environment variables are set
+  
+  CORS Errors?
+  → Add production URLs to backend CORS_ORIGINS
+  → Redeploy backend after adding URLs
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 💡 PRO TIPS                                                      │
+└──────────────────────────────────────────────────────────────────┘
+  • Free tier sleeps after 15 minutes
+  • First request takes ~30 seconds (cold start)
+  • Enable Auto-Deploy for git push updates
+  • Use UptimeRobot to keep services awake
+  • Monitor logs in Render dashboard
+
+╔══════════════════════════════════════════════════════════════════╗
+║  NEED HELP? Check RENDER_COMMANDS.md for detailed steps         ║
+╚══════════════════════════════════════════════════════════════════╝

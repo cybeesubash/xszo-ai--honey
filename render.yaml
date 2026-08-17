@@ -1,0 +1,60 @@
+services:
+  # Backend API Service
+  - type: web
+    name: cyber-eye-backend
+    env: python
+    plan: free
+    buildCommand: |
+      cd backend && 
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend && 
+      python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: PORT
+        value: 8000
+
+  # Dashboard Frontend Service
+  - type: web
+    name: cyber-eye-dashboard
+    env: node
+    plan: free
+    buildCommand: |
+      cd dashboard && 
+      npm install && 
+      npm run build
+    startCommand: |
+      cd dashboard && 
+      npx serve -s dist -l $PORT
+    envVars:
+      - key: VITE_API_URL
+        value: https://cyber-eye-backend.onrender.com
+      - key: VITE_BACKEND_PROXY
+        value: https://cyber-eye-backend.onrender.com
+      - key: PORT
+        value: 3000
+
+  # XZSO Landing Page Service
+  - type: web
+    name: xzso-landing
+    env: node
+    plan: free
+    rootDir: landing page/xszo-main__1_/xszo-main (1)/xszo-main
+    buildCommand: |
+      npm install && 
+      npm run build
+    startCommand: |
+      npm run preview -- --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: VITE_DEMO_MODE
+        value: "true"
+      - key: PORT
+        value: 3000

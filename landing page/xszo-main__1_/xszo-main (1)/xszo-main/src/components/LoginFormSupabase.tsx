@@ -22,13 +22,19 @@ export default function LoginFormSupabase({ onLoginSuccess, onBack }: LoginFormP
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in
-    auth.getUser().then(user => {
-      if (user) {
-        // User is already authenticated, redirect to dashboard
-        redirectToDashboard();
+    // Check if user just signed out
+    const signedOutTime = localStorage.getItem('signed_out');
+    if (signedOutTime) {
+      const timeSinceSignout = Date.now() - parseInt(signedOutTime);
+      // If signed out less than 5 seconds ago, don't auto-redirect
+      if (timeSinceSignout < 5000) {
+        return;
       }
-    });
+      // Clear old sign out flag
+      localStorage.removeItem('signed_out');
+    }
+    
+    // Don't auto-redirect - user must explicitly login
   }, []);
 
   const redirectToDashboard = () => {

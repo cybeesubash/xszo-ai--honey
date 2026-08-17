@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, Settings as SettingsIcon, Zap } from 'lucide-react';
+import { Search, Bell, Settings as SettingsIcon, Zap, LogOut } from 'lucide-react';
 import { sendTestEvent } from '../lib/api';
 
 export default function TopBar({ health, wsConnected, espOnline, onSimulateAttack }) {
@@ -18,6 +18,41 @@ export default function TopBar({ health, wsConnected, espOnline, onSimulateAttac
       console.error('Simulation failed', err);
     } finally {
       setTimeout(() => setSimulating(false), 600);
+    }
+  };
+
+  const handleSignOut = async () => {
+    // Confirm sign out
+    if (confirm('Sign out from CYBER-EYE Dashboard?')) {
+      try {
+        // Sign out from Supabase (if using Supabase auth)
+        // This will be handled by the auth system
+        const authSignOut = async () => {
+          try {
+            await fetch('http://localhost:3000/api/signout', { method: 'POST' });
+          } catch (e) {
+            console.log('Sign out API not available');
+          }
+        };
+        await authSignOut();
+      } catch (e) {
+        console.log('Sign out error:', e);
+      }
+      
+      // Clear ALL auth-related data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear cookies
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      // Add a flag to prevent auto-redirect
+      localStorage.setItem('signed_out', Date.now().toString());
+      
+      // Force reload to clear any cached state
+      window.location.replace('http://localhost:3000');
     }
   };
 
@@ -61,6 +96,16 @@ export default function TopBar({ health, wsConnected, espOnline, onSimulateAttac
         {/* Settings Icon */}
         <button className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1">
           <SettingsIcon size={16} />
+        </button>
+
+        {/* Sign Out Button */}
+        <button 
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 hover:text-rose-200 font-mono text-[10px] font-bold cursor-pointer transition-all shadow-[0_0_10px_rgba(244,63,94,0.05)] hover:shadow-[0_0_15px_rgba(244,63,94,0.1)]"
+          title="Sign Out"
+        >
+          <LogOut size={12} />
+          <span className="hidden sm:inline">SIGN OUT</span>
         </button>
 
         {/* Divider */}

@@ -1,0 +1,96 @@
+╔══════════════════════════════════════════════════════════════════╗
+║     RENDER DEPLOYMENT - ONE SERVICE (Backend + Dashboard)        ║
+║                  CYBER-EYE by Subash 🦅                          ║
+╚══════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📦 SINGLE SERVICE CONFIGURATION                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+  Name: cyber-eye-platform
+  Environment: Python 3
+  Branch: main
+  Root Directory: (leave BLANK)
+  
+  Build Command (COPY THIS):
+  ────────────────────────────────────────────────────────────────
+  cd dashboard && npm install --legacy-peer-deps && npm run build && cd ../backend && pip install -r requirements.txt
+  ────────────────────────────────────────────────────────────────
+  
+  Start Command (COPY THIS):
+  ────────────────────────────────────────────────────────────────
+  python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+  ────────────────────────────────────────────────────────────────
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🔑 ENVIRONMENT VARIABLES (Click "Advanced")                      │
+└──────────────────────────────────────────────────────────────────┘
+
+  PYTHON_VERSION = 3.11.0
+  NODE_VERSION = 18.17.0
+  OPENROUTER_API_KEY = <your-key>
+  GEMINI_API_KEY = <your-key>
+  TELEGRAM_BOT_TOKEN = <your-token>
+  TELEGRAM_CHAT_ID = <your-id>
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🌐 YOUR DEPLOYED URLS                                            │
+└──────────────────────────────────────────────────────────────────┘
+
+  Dashboard:  https://cyber-eye-platform.onrender.com/
+  API Docs:   https://cyber-eye-platform.onrender.com/docs
+  Health:     https://cyber-eye-platform.onrender.com/health
+  Stats:      https://cyber-eye-platform.onrender.com/stats
+  WebSocket:  wss://cyber-eye-platform.onrender.com/ws/live
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ ADVANTAGES OF ONE SERVICE                                     │
+└──────────────────────────────────────────────────────────────────┘
+
+  ✓ Only 1 free service used (save slots!)
+  ✓ No CORS issues (same origin)
+  ✓ Simpler deployment (one URL)
+  ✓ Faster (no cross-origin delays)
+  ✓ Lower cost (1 service bill)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🚀 DEPLOYMENT STEPS                                              │
+└──────────────────────────────────────────────────────────────────┘
+
+  1. Go to https://dashboard.render.com
+  2. Click "New +" → "Web Service"
+  3. Connect GitHub: cybeesubash/xszo-ai--honey
+  4. Copy-paste the commands above
+  5. Add environment variables
+  6. Click "Create Web Service"
+  7. Wait 5-10 minutes for build
+  8. Open your URL and test!
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🧪 VERIFY DEPLOYMENT                                             │
+└──────────────────────────────────────────────────────────────────┘
+
+  Open these URLs in browser:
+  
+  ✓ https://your-service.onrender.com/
+    → Should show dashboard with 3D globe
+    
+  ✓ https://your-service.onrender.com/health
+    → Should show {"status": "ok"}
+    
+  ✓ https://your-service.onrender.com/docs
+    → Should show API documentation
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 💡 PRO TIPS                                                      │
+└──────────────────────────────────────────────────────────────────┘
+
+  • Build takes ~5-8 minutes (dashboard + backend)
+  • Free tier sleeps after 15 min inactivity
+  • First wake-up takes ~30 seconds
+  • Use UptimeRobot to keep it awake
+  • Monitor logs in Render dashboard
+
+╔══════════════════════════════════════════════════════════════════╗
+║  Questions? Check RENDER_COMBINED_SERVICE.md for details        ║
+╚══════════════════════════════════════════════════════════════════╝

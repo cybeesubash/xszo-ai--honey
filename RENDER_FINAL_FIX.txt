@@ -1,0 +1,91 @@
+╔══════════════════════════════════════════════════════════════════╗
+║              RENDER FINAL FIX - Start Command Issue             ║
+╚══════════════════════════════════════════════════════════════════╝
+
+PROBLEM: Start command uses "cd backend" which breaks imports
+CAUSE: When inside backend/, Python can't find backend.* modules
+SOLUTION: Update Start Command in Render (NO cd needed!)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ CORRECT START COMMAND (Update This Now!)                      │
+└──────────────────────────────────────────────────────────────────┘
+
+❌ OLD (causes error):
+cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+
+✅ NEW (works!):
+python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🔧 HOW TO UPDATE ON RENDER (Do This Now!)                        │
+└──────────────────────────────────────────────────────────────────┘
+
+1. Go to your service: cyber-eye-platform
+2. Click "Settings" (left sidebar)
+3. Scroll to "Build & Deploy" section
+4. Find "Start Command" field
+5. Replace with:
+   ────────────────────────────────────────────────────────────────
+   python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+   ────────────────────────────────────────────────────────────────
+6. Click "Save Changes"
+7. Click "Manual Deploy" → "Deploy Latest Commit"
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📋 COMPLETE FINAL CONFIGURATION                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+Service Name: cyber-eye-platform
+Environment: Python 3
+Root Directory: (blank)
+Branch: main
+
+Build Command:
+cd dashboard && npm install --legacy-peer-deps && npm run build && cd ../backend && pip install -r requirements.txt
+
+Start Command (UPDATED!):
+python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+
+Environment Variables:
+PYTHON_VERSION=3.11.0
+NODE_VERSION=18.17.0
+OPENROUTER_API_KEY=<your-key>
+GEMINI_API_KEY=<your-key>
+TELEGRAM_BOT_TOKEN=<your-token>
+TELEGRAM_CHAT_ID=<your-id>
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 💡 WHY THIS WORKS                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+• Runs from ROOT directory (not backend/)
+• Python can see backend/ as a package
+• backend.main imports work correctly
+• backend.ai_analyzer, backend.models etc. all work
+• No "cd backend" needed!
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ AFTER UPDATE - EXPECTED SUCCESS                               │
+└──────────────────────────────────────────────────────────────────┘
+
+You should see in logs:
+INFO:     Started server process [12345]
+INFO:     Waiting for application startup.
+2026-08-13 XX:XX:XX,XXX [INFO] cyber-eye: CYBER-EYE backend started
+🤖 Telegram bot background task launched.
+📊 Dashboard static files mounted at /assets
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:XXXX
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🌐 TEST YOUR DEPLOYMENT                                          │
+└──────────────────────────────────────────────────────────────────┘
+
+Dashboard:  https://cyber-eye-platform.onrender.com/
+Health:     https://cyber-eye-platform.onrender.com/health
+API Docs:   https://cyber-eye-platform.onrender.com/docs
+Stats:      https://cyber-eye-platform.onrender.com/stats
+
+╔══════════════════════════════════════════════════════════════════╗
+║  Update Start Command in Settings → Deploy → SUCCESS! 🎉        ║
+╚══════════════════════════════════════════════════════════════════╝

@@ -1,0 +1,158 @@
+╔══════════════════════════════════════════════════════════════════╗
+║     RENDER SINGLE SERVICE - Backend Serves Dashboard            ║
+║              CYBER-EYE by Subash 🦅 (FINAL FIX!)                ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Backend will serve both API and Dashboard from ONE service!
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🎯 SINGLE SERVICE CONFIGURATION                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+Name: cyber-eye-platform
+Environment: Python 3
+Root Directory: (leave BLANK - important!)
+Branch: main
+
+Build Command (COPY EXACTLY):
+────────────────────────────────────────────────────────────────
+cd dashboard && npm install --legacy-peer-deps && npm run build && cd ../backend && pip install -r requirements.txt
+────────────────────────────────────────────────────────────────
+
+Start Command (COPY EXACTLY):
+────────────────────────────────────────────────────────────────
+cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+────────────────────────────────────────────────────────────────
+
+Environment Variables:
+PYTHON_VERSION=3.11.0
+NODE_VERSION=18.17.0
+OPENROUTER_API_KEY=<your-key>
+GEMINI_API_KEY=<your-key>
+TELEGRAM_BOT_TOKEN=<your-token>
+TELEGRAM_CHAT_ID=<your-id>
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 📋 WHAT HAPPENS                                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+Step 1: Build Dashboard
+  • cd dashboard
+  • npm install --legacy-peer-deps
+  • npm run build
+  • Creates: dashboard/dist/ with HTML/CSS/JS
+
+Step 2: Install Backend
+  • cd ../backend
+  • pip install -r requirements.txt
+
+Step 3: Start Backend
+  • cd backend
+  • Backend starts and detects dashboard/dist/
+  • Serves dashboard at / (root)
+  • Serves API at /api/*, /logs, /stats, etc.
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🌐 HOW IT WORKS                                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+URL Routing:
+  GET /               → Dashboard (index.html)
+  GET /assets/*       → Dashboard CSS/JS files
+  GET /health         → API Health Check
+  GET /docs           → API Documentation
+  GET /logs           → API Endpoint
+  GET /stats          → API Endpoint
+  POST /api/event     → API Endpoint
+  WebSocket /ws/live  → Real-time updates
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🚀 DEPLOYMENT STEPS                                              │
+└──────────────────────────────────────────────────────────────────┘
+
+1. Go to Render Dashboard: https://dashboard.render.com
+
+2. If service exists, UPDATE IT:
+   • Go to your service
+   • Settings → Build & Deploy
+   • Update Build Command (see above)
+   • Update Start Command (see above)
+   • Save Changes
+   • Manual Deploy → Clear build cache & deploy
+
+3. If creating NEW service:
+   • New + → Web Service
+   • Connect: cybeesubash/xszo-ai--honey
+   • Copy-paste config from above
+   • Create Web Service
+
+4. Wait 8-10 minutes for:
+   • Dashboard build (~3 min)
+   • Backend install (~2 min)
+   • Service start (~1 min)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ ✅ VERIFY DEPLOYMENT                                             │
+└──────────────────────────────────────────────────────────────────┘
+
+Open in browser:
+https://cyber-eye-platform.onrender.com/
+
+Expected Result:
+✓ Dashboard loads with 3D globe
+✓ Real-time metrics display
+✓ Attack logs stream
+✓ No CORS errors
+✓ API connected
+
+Test API directly:
+https://cyber-eye-platform.onrender.com/health
+https://cyber-eye-platform.onrender.com/docs
+https://cyber-eye-platform.onrender.com/stats
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🐛 TROUBLESHOOTING                                               │
+└──────────────────────────────────────────────────────────────────┘
+
+Still shows JSON instead of dashboard:
+→ Check build logs: dashboard/dist/ was created
+→ Clear build cache and redeploy
+→ Verify Root Directory is BLANK
+
+Dashboard shows but broken (no styles):
+→ Check /assets path is mounted correctly
+→ View browser console (F12) for 404 errors
+
+Build timeout:
+→ Build takes 8-10 minutes total
+→ Free tier allows 10 minutes max
+→ Should succeed, be patient!
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 💡 ADVANTAGES                                                    │
+└──────────────────────────────────────────────────────────────────┘
+
+✓ Only 1 service = Saves free tier slots
+✓ No CORS issues = Same origin
+✓ Single URL = Easy to share
+✓ Simpler = One deploy, one URL
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 🎯 FINAL URL                                                     │
+└──────────────────────────────────────────────────────────────────┘
+
+Everything at ONE URL:
+https://cyber-eye-platform.onrender.com/
+
+Dashboard:      https://cyber-eye-platform.onrender.com/
+API Docs:       https://cyber-eye-platform.onrender.com/docs
+Health:         https://cyber-eye-platform.onrender.com/health
+WebSocket:      wss://cyber-eye-platform.onrender.com/ws/live
+
+ESP32 Config:
+Backend URL:    https://cyber-eye-platform.onrender.com
+API Key:        honeypot-secret-soc-key-2026
+
+╔══════════════════════════════════════════════════════════════════╗
+║  Push code first, then update Render config and deploy! 🚀      ║
+╚══════════════════════════════════════════════════════════════════╝
